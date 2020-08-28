@@ -40,15 +40,14 @@ def new_post(request):
 
 def profile(request, username):
     username = get_object_or_404(User, username=username)
-    user_posts = Post.objects.filter(author=username)
-    posts_count = Post.objects.filter(author=username).count()
+    user_posts = username.posts.all()
     paginator = Paginator(user_posts, 10)
     page_number = request.GET.get('page')
     page = paginator.get_page(page_number)
     context = {
         'username': username,
         'user_posts': user_posts,
-        'posts_count': posts_count,
+        'posts_count': user_posts.count(),
         'page': page,
         'paginator': paginator
     }
@@ -57,12 +56,11 @@ def profile(request, username):
 
 def post_view(request, username, post_id):
     username = get_object_or_404(User, username=username)
-    post = get_object_or_404(Post, author=username, id=post_id)
-    posts_count = Post.objects.filter(author=username).count()
+    post = get_object_or_404(username.posts, id=post_id)
     context = {
         'username': username,
         'post': post,
-        'posts_count': posts_count,
+        'posts_count': username.posts.all().count(),
     }
     return render(request, 'post.html', context)
 
@@ -73,11 +71,9 @@ def post_edit(request, username, post_id):
     form = PostForm(request.POST or None, instance=post)
     if post.author != request.user:
         return redirect('post', username=username, post_id=post_id)
-    if request.method == 'POST':
-        if form.is_valid():
-            form.instance.id = post_id
-            form.save()
-            return redirect('post', username=username, post_id=post_id)
+    if form.is_valid():
+        form.save()
+        return redirect('post', username=username, post_id=post_id)
     return render(request, 'posts/new.html', {'form': form, 'post': post})
 
 

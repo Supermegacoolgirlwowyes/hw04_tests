@@ -1,0 +1,19 @@
+<div class="card mb-3 mt-1 shadow-sm">
+    <div class="card-body">
+        <p class="card-text">
+            <a href="/{{ username }}/"><strong class="d-block text-gray-dark">@{{ username }}</strong></a>
+            {{ post.text }} <!-- к сожалению, не поняла комментарий к этой строке -->
+        </p>
+        <div class="d-flex justify-content-between align-items-center">
+            <div class="btn-group ">
+                {%  if user_posts %}
+                <a class="btn btn-sm text-muted" href='{% url 'post' username=post.author post_id=post.id %}'>Добавить комментарий</a>
+                {% endif %}
+                {% if username == request.user %}
+                    <a class="btn btn-sm text-muted" href='{% url 'post_edit' username=post.author post_id=post.id %}'>Редактировать</a>
+                {% endif %}
+            </div>
+            <small class="text-muted"></small>
+        </div>
+    </div>
+</div>

@@ -7,74 +7,60 @@ from posts.models import User, Post, Group
 class SimpleTest(TestCase):
     def setUp(self):
         self.client = Client()
+        self.client_auth = Client()
         self.user = User.objects.create(username='username')
-        self.group_cats = Group.objects.create(title='cats', slug='cats')
-        self.group_dogs = Group.objects.create(title='dogs', slug='dogs')
-        self.post = Post.objects.create(
-            id=1,
-            author=self.user,
-            group=self.group_cats,
-            text='text'
-        )
+        self.group = Group.objects.create(title='cats', slug='cats')
+        self.client_auth.force_login(self.user)
 
-    def testAuthNewPost(self):
-        new_post_url = reverse('new_post')
+    def test_AuthNewPost(self):
+        response = self.client_auth.post(reverse('new_post'), {'group': self.group.id, 'text': 'text'})
+        self.assertTrue(response)
 
-        self.client.force_login(self.user)
-        response = self.client.post(f'{new_post_url}', {'group': self.group_cats, 'text': self.post.text})
-        self.assertEqual(response.status_code, 200)
-
-    def testNotAuthNewPost(self):
+    def test_NotAuthNewPost(self):
         login_url = reverse('login')
         new_post_url = reverse('new_post')
         target_url = f'{login_url}?next={new_post_url}'
-
         response = self.client.get(f'{new_post_url}')
-        self.assertRedirects(response, target_url, status_code=302, target_status_code=200)
+        self.assertRedirects(response, target_url, target_status_code=200)
 
-    def testPostPublished(self):
-        profile_url = reverse('profile', kwargs={'username': self.post.author})
-        post_url = reverse('post', kwargs={'username': self.post.author, 'post_id': self.post.id})
-        group_url = reverse('group', kwargs={'slug': self.post.group})
+    def test_Post_Published(self):
+        self.client_auth.post(reverse('new_post'), {'group': self.group.id, 'text': 'text'})
+        post = Post.objects.get(pk=1)
 
-        response_index = self.client.get('/')
-        self.assertContains(response_index, self.post.text)
+        index_url = reverse('index')
+        profile_url = reverse('profile', kwargs={'username': self.user})
+        post_url = reverse('post', kwargs={'username': self.user, 'post_id': post.id})
 
-        response_profile = self.client.get(f'{profile_url}')
-        self.assertContains(response_profile, self.post.text)
+        url_list = [index_url, profile_url]
 
-        response_post = self.client.get(f'{post_url}')
-        self.assertContains(response_post, self.post.text)
+        for url in url_list:
+            response = self.client.get(url)
+            self.assertIn(post, response.context['page'])
 
-        response_post = self.client.get(f'{group_url}')
-        self.assertContains(response_post, self.post.text)
+        response = self.client.get(post_url)
+        self.assertEqual(post, response.context['post'])
 
-    def testAuthUserEditPost(self):
-        post_edit_url = reverse('post_edit', kwargs={'username': self.post.author, 'post_id': self.post.id})
-        self.client.force_login(self.user)
-        response = self.client.post(f'{post_edit_url}', {'id': 1, 'group': 'group_updated', 'text': 'text_updated'})
-        self.assertEqual(response.status_code, 200)
+    def test_Auth_User_Post_Edit(self):
+        post = Post.objects.create(
+            id=1,
+            author=self.user,
+            text='text'
+        )
+        post_edit_url = reverse('post_edit', kwargs={'username': post.author, 'post_id': post.id})
+        self.client_auth.post(post_edit_url, {'text': 'new text', 'group': self.group.id})
 
-    def testEditedPost(self):
-        Post.objects.filter(id=1).update(text='updated_text', group=self.group_dogs)
+        index_url = reverse('index')
+        profile_url = reverse('profile', kwargs={'username': post.author})
+        post_url = reverse('post', kwargs={'username': post.author, 'post_id': post.id})
+        group_url = reverse('group', kwargs={'slug': self.group.slug})
 
-        profile_url = reverse('profile', kwargs={'username': self.post.author})
-        post_url = reverse('post', kwargs={'username': self.post.author, 'post_id': self.post.id})
-        group_url = reverse('group', kwargs={'slug': self.group_dogs.slug})
+        url_list = [index_url, profile_url, post_url, group_url]
 
-        response_index = self.client.get('/')
-        self.assertContains(response_index, self.post.text)
+        for url in url_list:
+            response = self.client.get(url)
+            self.assertContains(response, 'new text')
 
-        response_profile = self.client.get(f'{profile_url}')
-        self.assertContains(response_profile, self.post.text)
-
-        response_post = self.client.get(f'{post_url}')
-        self.assertContains(response_post, self.post.text)
-
-        response_post = self.client.get(f'{group_url}')
-        self.assertContains(response_post, self.post.text)
-
-    def test404page(self):
+    def test_404page(self):
         group_url = reverse('group', kwargs={'slug': 'cars'})
-        response = self.client.get(f'{group_url}')
+        response = self.client.get(group_url)
         self.assertTrue(response.status_code == 404)

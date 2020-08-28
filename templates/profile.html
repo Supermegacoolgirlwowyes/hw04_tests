@@ -5,55 +5,15 @@
 {% block content %}
 <main role="main" class="container">
     <div class="row">
-        <div class="col-md-3 mb-3 mt-1">
-            <div class="card">
-                <div class="card-body">
-                    <div class="h2">
-                        {{ username.first_name }} {{ username.last_name }}
-                    </div>
-                    <div class="h3 text-muted">
-                        @{{ username }}
-                    </div>
-                </div>
-                <ul class="list-group list-group-flush">
-                    <li class="list-group-item">
-                        <div class="h6 text-muted">
-                            Подписчиков: XXX <br />
-                            Подписан: XXX
-                        </div>
-                    </li>
-                    <li class="list-group-item">
-                        <div class="h6 text-muted">
-                            Записей: {{ posts_count }}
-                        </div>
-                    </li>
-                </ul>
-            </div>
-        </div>
+        {% include 'aux/profile_block.html' %}
 
         <div class="col-md-9">
             {% for post in page %}
-                <div class="card mb-3 mt-1 shadow-sm">
-                    <div class="card-body">
-                        <p class="card-text">
-                            <a href="/{{ username }}/"><strong class="d-block text-gray-dark">@{{ username }}</strong></a>
-                            {{ post.text }}
-                        </p>
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div class="btn-group ">
-                                <a class="btn btn-sm text-muted" href='{% url 'post' username=post.author post_id=post.id %}'>Добавить комментарий</a>
-                                {% if username == request.user %}
-                                <a class="btn btn-sm text-muted" href='{% url 'post_edit' username=post.author post_id=post.id %}'>Редактировать</a>
-                                {% endif %}
-                            </div>
-                            <small class="text-muted">{{ post.pub_date|date:"d M Y г. H:i"}}</small>
-                        </div>
-                    </div>
-                </div>
+                {% include 'aux/post_block.html' %}
             {% endfor %}
 
             {% if page.has_other_pages %}
-                {% include "paginator.html" with items=page paginator=paginator %}
+                {% include "aux/paginator.html" with items=page paginator=paginator %}
             {% endif %}
         </div>
     </div>
