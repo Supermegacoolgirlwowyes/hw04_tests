@@ -5,15 +5,15 @@
 {% block content %}
 <main role="main" class="container">
     <div class="row">
-        {% include 'aux/profile_block.html' %}
+        {% include 'includes/profile_block.html' %}
 
         <div class="col-md-9">
             {% for post in page %}
-                {% include 'aux/post_block.html' %}
+                {% include 'includes/post_block.html' %}
             {% endfor %}
 
             {% if page.has_other_pages %}
-                {% include "aux/paginator.html" with items=page paginator=paginator %}
+                {% include "includes/paginator.html" with items=page paginator=paginator %}
             {% endif %}
         </div>
     </div>

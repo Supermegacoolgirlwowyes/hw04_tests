@@ -19,7 +19,8 @@ class Group(models.Model):
 
 class Post(models.Model):
     text = models.TextField(
-        'Текст', help_text='Напишите ваш пост здесь'
+        'Текст',
+        help_text='Напишите ваш пост здесь',
     )
     pub_date = models.DateTimeField('Дата публикации', auto_now_add=True)
     author = models.ForeignKey(
@@ -35,8 +36,42 @@ class Post(models.Model):
         blank=True,
         null=True,
         related_name='posts',
-        help_text='Выберите группу (необязательно)'
+        help_text='Выберите группу (необязательно)',
     )
+    image = models.ImageField(
+        'Изображение',
+        upload_to='posts/',
+        blank=True,
+        null=True,
+        help_text='Загрузите фотографию (необязательно)',
+    )
+
+    class Meta:
+        ordering = ('-pub_date',)
+
+    def __str__(self):
+        author = self.author
+        pub_date = self.pub_date
+        text = self.text[:12]
+        return f'{author}, {pub_date}, {text}...'
+
+
+class Comment(models.Model):
+    post = models.ForeignKey(
+        Post,
+        on_delete=models.CASCADE,
+        related_name='comments',
+    )
+    author = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='comments',
+    )
+    text = models.TextField(
+        'Текст',
+        help_text='Напишите ваш комментарий',
+    )
+    pub_date = models.DateTimeField('Дата комментария', auto_now_add=True)
 
     class Meta:
         ordering = ('-pub_date',)
