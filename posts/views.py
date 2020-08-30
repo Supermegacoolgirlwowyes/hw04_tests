@@ -61,17 +61,37 @@ def profile(request, username):
 
 def post_view(request, username, post_id):
     post = get_object_or_404(Post, author__username=username, id=post_id)
+    form = CommentForm()
+    comments = post.comments.all()
     context = {
         'username': post.author,
         'post': post,
+        'form': form,
+        'comments': comments
     }
     return render(request, 'post.html', context)
+
+
+@login_required()
+def add_comment(request, username, post_id):
+    post = get_object_or_404(Post, author__username=username, id=post_id)
+    form = CommentForm(request.POST or None)
+    if form.is_valid():
+        form.instance.author = request.user
+        form.instance.post = post
+        form.save()
+        return redirect('post', username=username, post_id=post_id)
+    # return render(request, 'includes/comments.html', {'form': form})
 
 
 @login_required
 def post_edit(request, username, post_id):
     post = get_object_or_404(Post, author__username=username, id=post_id)
-    form = PostForm(request.POST or None, files=request.FILES or None, instance=post)
+    form = PostForm(
+        request.POST or None,
+        files=request.FILES or None,
+        instance=post
+    )
     if post.author != request.user:
         return redirect('post', username=username, post_id=post_id)
     if form.is_valid():
@@ -91,5 +111,7 @@ def page_not_found(request, exception):
 
 def server_error(request):
     return render(
-        request, "misc/500.html", status=500
+        request,
+        "misc/500.html",
+        status=500
     )

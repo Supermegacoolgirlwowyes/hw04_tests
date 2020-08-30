@@ -19,8 +19,6 @@ urlpatterns = [
 urlpatterns += [
     path('about/about-author/', views.flatpage, {'url': '/about-author/'}, name='about-author'),
     path('about/about-spec/', views.flatpage, {'url': '/about-spec/'}, name='about-spec'),
-    # path('about-us/', views.flatpage, {'url': '/about-us/'}, name='about'),
-    # path('terms/', views.flatpage, {'url': '/terms/'}, name='terms'),
 ]
 
 if settings.DEBUG:

@@ -1,9 +1,7 @@
 from django import forms
-from django.contrib.auth import get_user_model
+from django.forms import Textarea
 
 from .models import Comment, Post
-
-User = get_user_model()
 
 
 class PostForm(forms.ModelForm):
@@ -14,6 +12,11 @@ class PostForm(forms.ModelForm):
 
 
 class CommentForm(forms.ModelForm):
+    text = forms.CharField(min_length=10)
+
     class Meta:
         model = Comment
-        fields = ['text']
+        fields = ('text',)
+        widgets = {
+            'name': Textarea,
+        }
