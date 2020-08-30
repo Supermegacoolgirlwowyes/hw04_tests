@@ -30,18 +30,8 @@ class SimpleTest(TestCase):
                 self.assertEqual(response_post.text, self.post.text)
 
     def test_signup(self):
-        self.client.post(
-            reverse('signup'), {
-                'username': 'supermegacoolgirlwowyes',
-                'password1': 'N3wP4ssw0rd',
-                'password2': 'N3wP4ssw0rd'
-            }
-        )
-        user = User.objects.get(username='supermegacoolgirlwowyes')
-        response = self.client.get(reverse('profile', args=[user.username]))
+        response = self.client.get(reverse('profile', args=[self.user.username]))
         self.assertEqual(response.status_code, 200)
-        response = User.objects.all().count()
-        self.assertEqual(response, 2)
 
     def test_auth_new_post(self):
         response = self.client_auth.post(
